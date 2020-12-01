@@ -1,5 +1,6 @@
 package gcubeit.com.myappointments
 
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -19,8 +20,12 @@ class CreateAppointmentActivity : AppCompatActivity() {
         setContentView(R.layout.activity_create_appointment)
 
         this.btnNext.setOnClickListener {
-            cvStep1.visibility = View.GONE
-            cvStep2.visibility = View.VISIBLE
+            if(etDescription.text.toString().length < 3) {
+                etDescription.error = getString(R.string.validate_appointment_description)
+            } else {
+                cvStep1.visibility = View.GONE
+                cvStep2.visibility = View.VISIBLE
+            }
         }
 
         btnConfirmAppointment.setOnClickListener {
@@ -100,4 +105,24 @@ class CreateAppointmentActivity : AppCompatActivity() {
     }
 
     private fun Int.twoDigits()  = if(this>9) this.toString() else "0$this"
+
+    override fun onBackPressed() {
+        if (cvStep2.visibility == View.VISIBLE) {
+            cvStep2.visibility = View.GONE
+            cvStep1.visibility = View.VISIBLE
+        } else if (cvStep1.visibility == View.VISIBLE) {
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle(getString(R.string.dialog_create_appointment_exit_title))
+            builder.setMessage(getString(R.string.dialog_create_appointment_exit_message))
+            builder.setPositiveButton(getString(R.string.dialog_create_appointment_exit_positive_btn)) { _, _ ->
+                finish()
+            }
+            builder.setNegativeButton(getString(R.string.dialog_create_appointment_exit_negative_btn)) { dialog, _ ->
+                dialog.dismiss()
+            }
+
+            val dialog = builder.create()
+            dialog.show()
+        }
+    }
 }

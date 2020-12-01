@@ -26,9 +26,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:contentPadding="12dp"
-        android:visibility="gone"
-        app:cardCornerRadius="8dp"
-        android:elevation="8dp">
+        app:cardCornerRadius="8dp">
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
@@ -41,6 +39,7 @@
             android:layout_height="wrap_content"/>
 
         <EditText
+            android:id="@+id/etDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
@@ -67,6 +66,7 @@
             android:layout_marginBottom="8dp"
             android:orientation="vertical">
             <RadioButton
+                android:checked="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/type1"/>
@@ -94,10 +94,9 @@
         android:id="@+id/cvStep2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         app:contentPadding="12dp"
-        app:cardCornerRadius="8dp"
-
-        android:elevation="8dp">
+        app:cardCornerRadius="8dp">
 
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
