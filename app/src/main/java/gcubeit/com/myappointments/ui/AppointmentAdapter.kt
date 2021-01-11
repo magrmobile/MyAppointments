@@ -1,9 +1,10 @@
-package gcubeit.com.myappointments
+package gcubeit.com.myappointments.ui
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import gcubeit.com.myappointments.R
 import gcubeit.com.myappointments.model.Appointment
 import kotlinx.android.synthetic.main.item_appointment.view.*
 

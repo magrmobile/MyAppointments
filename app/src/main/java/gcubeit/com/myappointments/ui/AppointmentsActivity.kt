@@ -1,8 +1,9 @@
-package gcubeit.com.myappointments
+package gcubeit.com.myappointments.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
+import gcubeit.com.myappointments.R
 import gcubeit.com.myappointments.model.Appointment
 import kotlinx.android.synthetic.main.activity_appointments.*
 

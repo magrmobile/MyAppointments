@@ -1,11 +1,12 @@
-package gcubeit.com.myappointments
+package gcubeit.com.myappointments.ui
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import gcubeit.com.myappointments.PreferenceHelper
 import kotlinx.android.synthetic.main.activity_menu.*
-import gcubeit.com.myappointments.PreferenceHelper.get
 import gcubeit.com.myappointments.PreferenceHelper.set
+import gcubeit.com.myappointments.R
 
 class MenuActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

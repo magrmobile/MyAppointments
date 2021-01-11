@@ -1,8 +1,9 @@
-package gcubeit.com.myappointments
+package gcubeit.com.myappointments.ui
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import gcubeit.com.myappointments.R
 import kotlinx.android.synthetic.main.activity_register.*
 
 

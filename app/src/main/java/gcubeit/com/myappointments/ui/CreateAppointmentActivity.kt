@@ -1,21 +1,37 @@
-package gcubeit.com.myappointments
+package gcubeit.com.myappointments.ui
 
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.RadioButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
+import gcubeit.com.myappointments.R
+import gcubeit.com.myappointments.io.ApiService
+import gcubeit.com.myappointments.model.Doctor
+import gcubeit.com.myappointments.model.Schedule
+import gcubeit.com.myappointments.model.Specialty
 import kotlinx.android.synthetic.main.activity_create_appointment.*
 import kotlinx.android.synthetic.main.card_view_step_one.*
 import kotlinx.android.synthetic.main.card_view_step_three.*
 import kotlinx.android.synthetic.main.card_view_step_two.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.*
+import kotlin.collections.ArrayList
 
 class CreateAppointmentActivity : AppCompatActivity() {
+    private val apiService: ApiService by lazy {
+        ApiService.create()
+    }
+
     private var selectedCalendar = Calendar.getInstance()
     private var selectedTimeRadioBtn: RadioButton? = null
 
@@ -33,7 +49,7 @@ class CreateAppointmentActivity : AppCompatActivity() {
             }
         }
 
-        btnNext2.setOnClickListener {
+        this.btnNext2.setOnClickListener {
             when {
                 etScheduleDate.text.toString().isEmpty() -> {
                     etScheduleDate.error = getString(R.string.validate_appointment_date)
@@ -50,16 +66,106 @@ class CreateAppointmentActivity : AppCompatActivity() {
             }
         }
 
-        btnConfirmAppointment.setOnClickListener {
+        this.btnConfirmAppointment.setOnClickListener {
             Toast.makeText(this, "Cita Registrada Correctamente.", Toast.LENGTH_SHORT).show()
             finish()
         }
 
-        val specialtyOptions = arrayOf("Specialty A", "Specialty B", "Specialty C")
-        this.spinnerSpecialties.adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, specialtyOptions)
+        loadSpecialties()
+        listenSpecialtyChanges()
+        listenDoctorAndDateChanges()
+    }
 
-        val doctorOptions = arrayOf("Doctor A", "Doctor B", "Doctor C")
-        this.spinnerDoctors.adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, doctorOptions)
+    private fun listenDoctorAndDateChanges() {
+        // doctors
+        spinnerDoctors.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+            }
+
+            override fun onItemSelected(adapter: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val doctor = adapter?.getItemAtPosition(position) as Doctor
+                loadHours(doctor.id, etScheduleDate.text.toString())
+            }
+        }
+
+        // scheduled date
+        etScheduleDate.addTextChangedListener(object: TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+            }
+
+            override fun afterTextChanged(p0: Editable?) {
+            }
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                val doctor = spinnerDoctors.selectedItem as Doctor
+                loadHours(doctor.id, etScheduleDate.text.toString())
+            }
+        })
+    }
+
+    private fun loadHours(doctorId: Int, date: String) {
+        val call = apiService.getHours(doctorId, date)
+        call.enqueue(object: Callback<Schedule> {
+            override fun onFailure(call: Call<Schedule>, t: Throwable) {
+                Toast.makeText(this@CreateAppointmentActivity, getString(R.string.error_loading_hours), Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onResponse(call: Call<Schedule>, response: Response<Schedule>) {
+                if(response.isSuccessful) {
+                    val schedule = response.body()
+                    Toast.makeText(this@CreateAppointmentActivity, "morning: ${schedule?.morning?.size}, afternoon: ${schedule?.afternoon?.size}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+        //Toast.makeText(this, "doctor: $doctorId, date: $date", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun loadSpecialties() {
+        val call = apiService.getSpecialties()
+        call.enqueue(object: Callback<ArrayList<Specialty>> {
+            override fun onFailure(call: Call<ArrayList<Specialty>>, t: Throwable) {
+                Toast.makeText(this@CreateAppointmentActivity, getString(R.string.error_loading_specialties), Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this@CreateAppointmentActivity, t.toString(), Toast.LENGTH_LONG).show()
+                finish()
+            }
+
+            override fun onResponse(call: Call<ArrayList<Specialty>>, response: Response<ArrayList<Specialty>>) {
+                if(response.isSuccessful) { // 200 ... 300
+                    val specialties = response.body() as ArrayList<Specialty>
+                    spinnerSpecialties.adapter = ArrayAdapter<Specialty>(this@CreateAppointmentActivity, android.R.layout.simple_list_item_1, specialties)
+                }
+            }
+        })
+    }
+
+    private fun listenSpecialtyChanges() {
+        spinnerSpecialties.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+
+            }
+
+            override fun onItemSelected(adapter: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val specialty = adapter?.getItemAtPosition(position) as Specialty
+                loadDoctors(specialty.id)
+            }
+        }
+    }
+
+    private fun loadDoctors(specialtyId: Int) {
+        val call = apiService.getDoctors(specialtyId)
+        call.enqueue(object: Callback<ArrayList<Doctor>>{
+            override fun onFailure(call: Call<ArrayList<Doctor>>, t: Throwable) {
+                Toast.makeText(this@CreateAppointmentActivity, getString(R.string.error_loading_doctors), Toast.LENGTH_SHORT).show()
+                finish()
+            }
+
+            override fun onResponse(call: Call<ArrayList<Doctor>>, response: Response<ArrayList<Doctor>>) {
+                if(response.isSuccessful) {
+                    val doctors = response.body() as ArrayList<Doctor>
+                    spinnerDoctors.adapter = ArrayAdapter<Doctor>(this@CreateAppointmentActivity, android.R.layout.simple_list_item_1, doctors)
+                }
+            }
+        })
     }
 
     private fun showAppointmentDataToConfirm() {
@@ -83,11 +189,12 @@ class CreateAppointmentActivity : AppCompatActivity() {
         val listener = DatePickerDialog.OnDateSetListener { datePicker, y, m, d ->
             //Toast.makeText(this, "$y $m $d", Toast.LENGTH_SHORT).show()
             selectedCalendar.set(y, m, d)
+
             etScheduleDate.setText(
                     resources.getString(
                             R.string.date_format,
                             y,
-                            m.twoDigits(),
+                            (m + 1).twoDigits(),
                             d.twoDigits()
                     )
             )
